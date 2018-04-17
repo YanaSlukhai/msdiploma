@@ -1,4 +1,4 @@
-package com.diploma.repositories;
+package com.diploma.jenatriplestoreservice.repositories;
 
 import org.apache.jena.ontology.*;
 import org.apache.jena.query.Dataset;
@@ -22,7 +22,8 @@ public class DataSetCreator {
 
     public DataSetCreator(){
         dataset = TDBFactory.createDataset("test_dir");
-        model = null;
+        loadModel("https://bitbucket.org/uamsdbmi/dron/raw/master/dron-upper.owl");
+        System.out.println("HERE IN DataSetCreator constructor");
     }
 
     public void loadModel(  String path )
@@ -41,9 +42,9 @@ public class DataSetCreator {
         }
     }
 
-    public List<String> getAllOntProperties(OntModel model ){
+    public List<String> getAllOntProperties(){
         List<String> allOntProperties = new ArrayList<String>();
-        ExtendedIterator<OntProperty> it=model.listAllOntProperties();
+        ExtendedIterator<OntProperty> it=this.model.listAllOntProperties();
         while(it.hasNext()){
             OntProperty property=(OntProperty)it.next();
             allOntProperties.add(property.getURI());

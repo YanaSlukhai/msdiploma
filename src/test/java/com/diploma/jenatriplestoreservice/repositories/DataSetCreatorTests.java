@@ -1,4 +1,4 @@
-package com.diploma.repositories;
+package com.diploma.jenatriplestoreservice.repositories;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
