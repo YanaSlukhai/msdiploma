@@ -15,7 +15,7 @@ public class TSRepositoryTests {
 
     @Test
     public void loadModelTest() {
-        tsRepository.loadOntModel("https://bitbucket.org/uamsdbmi/dron/raw/master/dron-upper.owl", "testDir1" );
+       // tsRepository.loadOntModel("https://bitbucket.org/uamsdbmi/dron/raw/master/dron-upper.owl", "testDir1" );
     }
 
 }

@@ -17,35 +17,54 @@ import java.util.List;
 @Repository
 public class TSRepository {
     private static final Logger log = LoggerFactory.getLogger( TSRepository.class );
-    private OntModel ontModel;
+    //private OntModel ontModel;
     private Dataset ds;
 
-    public TSRepository(String TDBdir){
-        ontModel = ModelFactory.createOntologyModel(OntModelSpec.OWL_DL_MEM);
-        ds = TDBFactory.createDataset(TDBdir);
+    public TSRepository(){
+        //ontModel = ModelFactory.createOntologyModel(OntModelSpec.OWL_DL_MEM);
+        ds = TDBFactory.createDataset("testDirLOAD");
+        loadModel("model1", "https://bitbucket.org/uamsdbmi/dron/raw/master/dron-upper.owl");
+        System.out.println("Loading model");
     }
 
-    public void loadOntModel(String ontPath, String datasetTargetDir)
+    public void loadModel( String modelName, String path )
     {
-        Dataset dataset  = TDBFactory.createDataset(datasetTargetDir);
-        dataset.begin( ReadWrite.WRITE );
-        FileManager.get().readModel(ontModel, ontPath);
-        dataset.commit();
+        Model model = null;
+
+        ds.begin( ReadWrite.WRITE );
+        try
+        {
+            model = ds.getDefaultModel();
+            FileManager.get().readModel( model, path );
+            ds.commit();
+        }
+        finally
+        {
+            ds.end();
+        }
     }
 
-    public List<OntProperty> getAllOntProperties(){
-        List<OntProperty> allOntProperties = new ArrayList<OntProperty>();
-        ExtendedIterator<OntProperty> it=this.ontModel.listAllOntProperties();
-        while(it.hasNext()){
-            OntProperty property = it.next();
-            allOntProperties.add(property);
+    public List<RDFNode> getAllOntProperties(){
+        ds.begin( ReadWrite.READ );
+        List<RDFNode> allOntProperties = new ArrayList<RDFNode>();
+        try {
+            Model ontModel = ds.getDefaultModel();
+            NodeIterator it = ontModel.listObjects();
+            while (it.hasNext()) {
+                RDFNode node = it.next();
+                allOntProperties.add(node);
+            }
+            ds.commit() ;
+        } finally {
+        ds.end() ;
         }
         return allOntProperties;
     }
 
     public List<OntClass> getAllOntClasses(){
+        OntModel ontModel = ModelFactory.createOntologyModel(OntModelSpec.OWL_DL_MEM);
         List<OntClass> allClasses= new ArrayList<OntClass>();
-        ExtendedIterator<OntClass> it=this.ontModel.listClasses();
+        ExtendedIterator<OntClass> it=ontModel.listClasses();
         while(it.hasNext()){
             OntClass ont_class=it.next();
             allClasses.add(ont_class);
