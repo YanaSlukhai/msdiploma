@@ -1,8 +1,7 @@
 package com.diploma.jenatriplestoreservice.repositories;
 
 import org.apache.jena.ontology.*;
-import org.apache.jena.query.Dataset;
-import org.apache.jena.query.ReadWrite;
+import org.apache.jena.query.*;
 import org.apache.jena.rdf.model.*;
 import org.apache.jena.tdb.TDBFactory;
 import org.apache.jena.util.FileManager;
@@ -60,6 +59,15 @@ public class TSRepository {
         }
         return allOntProperties;
     }
+    public ResultSet execSPARQLreadQuery(String sparqlQuery) {
+        ds.begin(ReadWrite.READ);
+
+        QueryExecution qExec = QueryExecutionFactory.create(sparqlQuery, ds);
+        ResultSet rs = qExec.execSelect();
+        System.out.println(ResultSetFormatter.asText(rs));
+        return rs;
+    }
+
 
     public List<OntClass> getAllOntClasses(){
         OntModel ontModel = ModelFactory.createOntologyModel(OntModelSpec.OWL_DL_MEM);
