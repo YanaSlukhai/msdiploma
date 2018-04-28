@@ -17,9 +17,9 @@ public class TSRepositoryTests {
     TSRepository tsRepository;
 
     @Test
-    public void loadModelTest() {
+    public void execSPARQLReadQueryTest() {
        // tsRepository.loadOntModel("https://bitbucket.org/uamsdbmi/dron/raw/master/dron-upper.owl", "testDir1" );
-        ResultSet rs = tsRepository.execSPARQLreadQuery("SELECT * {?s ?p ?o} LIMIT 10");
+        ResultSet rs = tsRepository.execSPARQLReadQuery("SELECT * {?s ?p ?o} LIMIT 10");
     }
 
 }

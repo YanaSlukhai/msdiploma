@@ -1,9 +1,13 @@
 package com.diploma.jenatriplestoreservice.repositories;
 
-import org.apache.jena.ontology.*;
+import org.apache.jena.atlas.lib.StrUtils;
+import org.apache.jena.ontology.OntModel;
+import org.apache.jena.ontology.OntModelSpec;
+import org.apache.jena.ontology.TransitiveProperty;
 import org.apache.jena.query.*;
 import org.apache.jena.rdf.model.*;
 import org.apache.jena.tdb.TDBFactory;
+import org.apache.jena.update.*;
 import org.apache.jena.util.FileManager;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.slf4j.Logger;
@@ -16,69 +20,97 @@ import java.util.List;
 @Repository
 public class TSRepository {
     private static final Logger log = LoggerFactory.getLogger( TSRepository.class );
-    //private OntModel ontModel;
-    private Dataset ds;
+
+    private Dataset dataset;
 
     public TSRepository(){
-        //ontModel = ModelFactory.createOntologyModel(OntModelSpec.OWL_DL_MEM);
-        ds = TDBFactory.createDataset("testDirLOAD");
-        loadModel("model1", "https://bitbucket.org/uamsdbmi/dron/raw/master/dron-upper.owl");
+        dataset = TDBFactory.createDataset("testDirLOAD");
         System.out.println("Loading model");
     }
 
-    public void loadModel( String modelName, String path )
+    public void loadModel(String path)
     {
         Model model = null;
 
-        ds.begin( ReadWrite.WRITE );
+        dataset.begin( ReadWrite.WRITE );
         try
         {
-            model = ds.getDefaultModel();
+            model = dataset.getDefaultModel();
             FileManager.get().readModel( model, path );
-            ds.commit();
+            dataset.commit();
         }
         finally
         {
-            ds.end();
+            log.info("Loading of ontology is complete " +  path);
+            dataset.end();
         }
     }
 
-    public List<RDFNode> getAllOntProperties(){
-        ds.begin( ReadWrite.READ );
+    public List<RDFNode> getAllOntObjects(){
+        dataset.begin( ReadWrite.READ );
         List<RDFNode> allOntProperties = new ArrayList<RDFNode>();
         try {
-            Model ontModel = ds.getDefaultModel();
-            NodeIterator it = ontModel.listObjects();
+            Model Model = dataset.getDefaultModel();
+            NodeIterator it = Model.listObjects();
             while (it.hasNext()) {
                 RDFNode node = it.next();
                 allOntProperties.add(node);
             }
-            ds.commit() ;
+            dataset.commit() ;
         } finally {
-        ds.end() ;
+        dataset.end() ;
         }
         return allOntProperties;
     }
-    public ResultSet execSPARQLreadQuery(String sparqlQuery) {
-        ds.begin(ReadWrite.READ);
 
-        QueryExecution qExec = QueryExecutionFactory.create(sparqlQuery, ds);
+    public ResultSet execSPARQLReadQuery(String sparqlQuery) {
+        dataset.begin(ReadWrite.READ);
+        QueryExecution qExec = QueryExecutionFactory.create(sparqlQuery, dataset);
         ResultSet rs = qExec.execSelect();
-        System.out.println(ResultSetFormatter.asText(rs));
+        dataset.commit();
         return rs;
     }
 
+    public void execSPARQLUpdateQuery(String sparqlQuery) {
+        dataset.begin(ReadWrite.WRITE);
+        try {
 
-    public List<OntClass> getAllOntClasses(){
-        OntModel ontModel = ModelFactory.createOntologyModel(OntModelSpec.OWL_DL_MEM);
-        List<OntClass> allClasses= new ArrayList<OntClass>();
-        ExtendedIterator<OntClass> it=ontModel.listClasses();
-        while(it.hasNext()){
-            OntClass ont_class=it.next();
-            allClasses.add(ont_class);
+            GraphStore graphStore = GraphStoreFactory.create(dataset);
+
+           // String sparqlUpdateString = StrUtils.strjoinNL(
+             //       "PREFIX : <http://example/>",
+               //     "INSERT { :s :p ?now } WHERE { BIND(now() AS ?now) }"
+            //) ;
+            UpdateRequest request = UpdateFactory.create(sparqlQuery);
+            UpdateProcessor proc = UpdateExecutionFactory.create(request, graphStore);
+            proc.execute();
+
+            dataset.commit();
+        } finally {
+            dataset.end();
         }
-        return allClasses;
     }
+
+    public List<TransitiveProperty> listTransitiveProperties() {
+        dataset.begin(ReadWrite.READ);
+        List transitiveProps = new ArrayList<TransitiveProperty>();
+        try {
+            Model model = dataset.getDefaultModel();
+            OntModel ontModel = ModelFactory.createOntologyModel(OntModelSpec.OWL_DL_MEM, model);
+            ExtendedIterator<TransitiveProperty> iterator  = ontModel.listTransitiveProperties();
+
+            while (iterator.hasNext()) {
+                TransitiveProperty transProp = iterator.next();
+                transitiveProps.add(transProp);
+            }
+            dataset.commit() ;
+        } finally {
+            dataset.end() ;
+        }
+        return transitiveProps;
+    }
+
+
 
 
 }
