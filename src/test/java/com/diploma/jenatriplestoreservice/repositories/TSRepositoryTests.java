@@ -10,16 +10,16 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 
 @RunWith(SpringRunner.class)
-@SpringBootTest(classes = TSRepository.class)
+@SpringBootTest(classes = TSRepositoryJenaImpl.class)
 public class TSRepositoryTests {
 
     @Autowired
-    TSRepository tsRepository;
+    TSRepositoryJenaImpl tsRepositoryJenaImpl;
 
     @Test
     public void execSPARQLReadQueryTest() {
        // tsRepository.loadOntModel("https://bitbucket.org/uamsdbmi/dron/raw/master/dron-upper.owl", "testDir1" );
-        ResultSet rs = tsRepository.execSPARQLReadQuery("SELECT * {?s ?p ?o} LIMIT 10");
+        String rs = tsRepositoryJenaImpl.execSPARQLReadQuery("SELECT * {?s ?p ?o} LIMIT 10");
     }
 
 }

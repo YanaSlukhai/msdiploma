@@ -33,17 +33,12 @@ public class TSController {
     @GetMapping(value = "/getdata/get-all-properties")
     @ResponseBody
     public String getAllObjects() {
-        List<RDFNode> allOntProperties = tsService.getAllOntObjects();
+        List<String> allOntProperties = tsService.getAllOntObjects();
         System.out.println(allOntProperties.size());
-        List<String> props = new ArrayList<String>();
-        for(RDFNode prop : allOntProperties){
-            props.add(prop.toString());
-                System.out.println("IT IS PROP" + prop.toString());
-        }
         final StringWriter sw =new StringWriter();
         final ObjectMapper mapper = new ObjectMapper();
         try {
-            mapper.writeValue(sw, props);
+            mapper.writeValue(sw, allOntProperties);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -52,17 +47,27 @@ public class TSController {
     @GetMapping(value = "/getdata/get-transitive-properties")
     @ResponseBody
     public String getTransitiveProperties() {
-        List<TransitiveProperty> allTransitiveProperties = tsService.listTransitiveProperties();
+        List<String> allTransitiveProperties = tsService.getTransitiveProperties();
         System.out.println(allTransitiveProperties.size());
-        List<String> props = new ArrayList<String>();
-        for(TransitiveProperty prop : allTransitiveProperties){
-            props.add(prop.getURI());
-            System.out.println("IT IS PROP" + prop.toString());
-        }
         final StringWriter sw =new StringWriter();
         final ObjectMapper mapper = new ObjectMapper();
         try {
-            mapper.writeValue(sw, props);
+            mapper.writeValue(sw, allTransitiveProperties);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return sw.toString();
+    }
+
+    @GetMapping(value = "/getdata/get-all-ont-classes")
+    @ResponseBody
+    public String getOntClasses() {
+        List<String> allTransitiveProperties = tsService.getOntClasses();
+        System.out.println(allTransitiveProperties.size());
+        final StringWriter sw =new StringWriter();
+        final ObjectMapper mapper = new ObjectMapper();
+        try {
+            mapper.writeValue(sw, allTransitiveProperties);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -79,10 +84,7 @@ public class TSController {
             SPARQLQueryDTO sparqlDTO = mapper.readValue(jsonSPARQL, SPARQLQueryDTO.class);
             System.out.println(sparqlDTO.getSparqlQuery());
 
-            ResultSet rs = tsService.execSPARQLReadQuery(sparqlDTO.getSparqlQuery());
-            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-            ResultSetFormatter.outputAsJSON(outputStream, rs);
-            String jsonRS = new String(outputStream.toByteArray());
+            String jsonRS  = tsService.execSPARQLReadQuery(sparqlDTO.getSparqlQuery());
             System.out.println(jsonRS);
             return jsonRS;
         } catch (IOException e) {

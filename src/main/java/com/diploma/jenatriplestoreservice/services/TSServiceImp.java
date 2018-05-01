@@ -1,9 +1,6 @@
 package com.diploma.jenatriplestoreservice.services;
 
 import com.diploma.jenatriplestoreservice.repositories.TSRepository;
-import org.apache.jena.ontology.TransitiveProperty;
-import org.apache.jena.query.ResultSet;
-import org.apache.jena.rdf.model.RDFNode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -21,12 +18,12 @@ public class TSServiceImp implements TSService {
     }
 
     @Override
-    public List<RDFNode> getAllOntObjects() {
+    public List<String> getAllOntObjects() {
         return  tsRepository.getAllOntObjects();
     }
 
     @Override
-    public ResultSet execSPARQLReadQuery(String sparqlQuery) {
+    public String execSPARQLReadQuery(String sparqlQuery) {
         return tsRepository.execSPARQLReadQuery(sparqlQuery);
     }
 
@@ -36,7 +33,12 @@ public class TSServiceImp implements TSService {
     }
 
     @Override
-    public List<TransitiveProperty> listTransitiveProperties() {
-        return tsRepository.listTransitiveProperties();
+    public List<String> getTransitiveProperties() {
+        return tsRepository.getTransitiveProperties();
     }
+
+    public List<String> getOntClasses() {
+        return tsRepository.getOntClasses();
+    }
+
 }
