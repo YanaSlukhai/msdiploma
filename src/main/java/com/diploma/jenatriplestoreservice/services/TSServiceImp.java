@@ -1,5 +1,7 @@
 package com.diploma.jenatriplestoreservice.services;
 
+import com.diploma.jenatriplestoreservice.domain.OntologyClass;
+import com.diploma.jenatriplestoreservice.domain.RDFResource;
 import com.diploma.jenatriplestoreservice.repositories.TSRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -9,17 +11,21 @@ import java.util.List;
 @Service
 public class TSServiceImp implements TSService {
 
-    @Autowired
-    private TSRepository tsRepository;
+    private final TSRepository tsRepository;
 
-    @Override
-    public void loadOntology(String URIpath) {
-        tsRepository.loadModel(URIpath);
+    @Autowired
+    public TSServiceImp(TSRepository tsRepository) {
+        this.tsRepository = tsRepository;
     }
 
     @Override
-    public List<String> getAllOntObjects() {
-        return  tsRepository.getAllOntObjects();
+    public void loadOntology(String URIpath) {
+        tsRepository.loadOntology(URIpath);
+    }
+
+    @Override
+    public List<RDFResource> listAllOntSubjects() {
+        return  tsRepository.listAllOntResources();
     }
 
     @Override
@@ -33,12 +39,12 @@ public class TSServiceImp implements TSService {
     }
 
     @Override
-    public List<String> getTransitiveProperties() {
-        return tsRepository.getTransitiveProperties();
+    public List<String> listTransitiveProperties() {
+        return tsRepository.listTransitiveProperties();
     }
 
-    public List<String> getOntClasses() {
-        return tsRepository.getOntClasses();
+    public List<OntologyClass> listOntClasses() {
+        return tsRepository.listOntClasses();
     }
 
 }

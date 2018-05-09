@@ -1,22 +1,21 @@
 package com.diploma.jenatriplestoreservice.repositories;
 
-import org.apache.jena.ontology.OntClass;
-import org.apache.jena.ontology.TransitiveProperty;
-import org.apache.jena.query.ResultSet;
-import org.apache.jena.rdf.model.RDFNode;
+import com.diploma.jenatriplestoreservice.domain.OntologyClass;
+import com.diploma.jenatriplestoreservice.domain.RDFResource;
+import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
 public interface TSRepository {
-    void loadModel(String path);
+     void loadOntology(String path);
 
-     List<String> getAllOntObjects();
+     List<RDFResource> listAllOntResources();
 
      String execSPARQLReadQuery(String sparqlQuery) ;
 
      void execSPARQLUpdateQuery(String sparqlQuery) ;
 
-     public List<String> getTransitiveProperties() ;
+     List<String> listTransitiveProperties() ;
 
-     public List<String>  getOntClasses() ;
+     List<OntologyClass> listOntClasses() ;
 }

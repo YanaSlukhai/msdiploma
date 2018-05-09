@@ -1,5 +1,7 @@
 package com.diploma.jenatriplestoreservice.repositories;
 
+import com.diploma.jenatriplestoreservice.domain.OntologyClass;
+import com.diploma.jenatriplestoreservice.domain.RDFResource;
 import org.apache.jena.ontology.OntClass;
 import org.apache.jena.ontology.OntModel;
 import org.apache.jena.ontology.OntModelSpec;
@@ -18,18 +20,18 @@ import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+@SuppressWarnings("deprecation")
 @Repository
 public class TSRepositoryJenaImpl implements TSRepository{
-    private static final Logger log = LoggerFactory.getLogger( TSRepositoryJenaImpl.class );
-
     private Dataset dataset;
+    private static final Logger log = LoggerFactory.getLogger( TSRepositoryJenaImpl.class );
 
     public TSRepositoryJenaImpl(){
         dataset = TDBFactory.createDataset("triplestore");
-        System.out.println("Loading model");
+        log.info("Dataset was successfully created");
     }
 
-    public void loadModel(String path)
+    public void loadOntology(String path)
     {
         Model model = null;
 
@@ -42,26 +44,36 @@ public class TSRepositoryJenaImpl implements TSRepository{
         }
         finally
         {
-            log.info("Loading of ontology is complete " +  path);
+            log.info("Loading of " + path + " ontology is complete ");
             dataset.end();
         }
     }
 
-    public List<String> getAllOntObjects(){
+    public List<RDFResource> listAllOntResources(){
         dataset.begin( ReadWrite.READ );
-        List<String> allOntProperties = new ArrayList<String>();
+        List<RDFResource> allOntResources = new ArrayList<>();
         try {
-            Model Model = dataset.getDefaultModel();
-            NodeIterator it = Model.listObjects();
+            Model model = dataset.getDefaultModel();
+            ResIterator it = model.listSubjects();
             while (it.hasNext()) {
-                RDFNode node = it.next();
-                allOntProperties.add(node.toString());
+                Resource node = it.next();
+                    List<String> properties = new ArrayList<String>();
+                    StmtIterator stmtIt = node.listProperties();
+                    while (stmtIt.hasNext()) {
+                        Statement st = stmtIt.next();
+                        properties.add(st.getObject().toString());
+                    }
+                    RDFResource nextRDFresource = new RDFResource(node.asResource().getURI(),
+                                                                  node.asResource().getNameSpace(),
+                                                                  properties);
+                    node.asResource().getNameSpace();
+                    allOntResources.add(nextRDFresource);
             }
             dataset.commit() ;
         } finally {
         dataset.end() ;
         }
-        return allOntProperties;
+        return allOntResources;
     }
 
     public String execSPARQLReadQuery(String sparqlQuery) {
@@ -80,11 +92,6 @@ public class TSRepositoryJenaImpl implements TSRepository{
         try {
 
             GraphStore graphStore = GraphStoreFactory.create(dataset);
-
-           // String sparqlUpdateString = StrUtils.strjoinNL(
-             //       "PREFIX : <http://example/>",
-               //     "INSERT { :s :p ?now } WHERE { BIND(now() AS ?now) }"
-            //) ;
             UpdateRequest request = UpdateFactory.create(sparqlQuery);
             UpdateProcessor proc = UpdateExecutionFactory.create(request, graphStore);
             proc.execute();
@@ -95,7 +102,7 @@ public class TSRepositoryJenaImpl implements TSRepository{
         }
     }
 
-    public List<String> getTransitiveProperties() {
+    public List<String> listTransitiveProperties() {
         dataset.begin(ReadWrite.READ);
         List transitiveProps = new ArrayList<String>();
         try {
@@ -106,6 +113,7 @@ public class TSRepositoryJenaImpl implements TSRepository{
             while (iterator.hasNext()) {
                 TransitiveProperty transProp = iterator.next();
                 transitiveProps.add(transProp.getURI());
+
             }
             dataset.commit() ;
         } finally {
@@ -114,16 +122,26 @@ public class TSRepositoryJenaImpl implements TSRepository{
         return transitiveProps;
     }
 
-    public List<String> getOntClasses() {
+    public List<OntologyClass> listOntClasses() {
         dataset.begin(ReadWrite.READ);
-        List ontClasses = new ArrayList<String>();
+        List <OntologyClass> ontClasses = new ArrayList<OntologyClass>();
         try {
             Model model = dataset.getDefaultModel();
             OntModel ontModel = ModelFactory.createOntologyModel(OntModelSpec.OWL_DL_MEM, model);
             ExtendedIterator<OntClass> iterator  = ontModel.listClasses();
             while (iterator.hasNext()) {
+
                 OntClass ontClass = iterator.next();
-                ontClasses.add(ontClass.toString());
+                ExtendedIterator<OntClass> listSubClasses= ontClass.listSubClasses();
+                List <String> classInstances = new ArrayList<>();
+
+                while (listSubClasses.hasNext()){
+                    OntClass subclass = listSubClasses.next();
+                    classInstances.add(subclass.getURI());
+                }
+
+                OntologyClass domainOntologyClass = new OntologyClass(ontClass.getURI(), classInstances);
+                ontClasses.add(domainOntologyClass);
             }
             dataset.commit() ;
         } finally {
